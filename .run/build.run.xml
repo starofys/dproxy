@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="build" type="GoApplicationRunConfiguration" factoryName="Go Application">
+    <module name="dproxy" />
+    <working_directory value="$PROJECT_DIR$/bin" />
+    <go_parameters value="-ldflags &quot;-s -w&quot; -o $PROJECT_DIR$/bin/dproxy.exe" />
+    <kind value="PACKAGE" />
+    <package value="gitee.com/yysf-xin/dproxy/cmd/dproxy" />
+    <directory value="$PROJECT_DIR$" />
+    <filePath value="$PROJECT_DIR$/cmd/dproxy/main.go" />
+    <output_directory value="$PROJECT_DIR$/bin" />
+    <option name="run" value="false" />
+    <method v="2" />
+  </configuration>
+</component>
