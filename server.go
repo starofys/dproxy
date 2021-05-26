@@ -1,13 +1,10 @@
 package dproxy
 
 import (
-	"net"
 	"net/http"
 	"net/http/httputil"
 	"sync"
 	"time"
-
-	"golang.org/x/net/publicsuffix"
 )
 
 const (
@@ -35,7 +32,9 @@ type Server struct {
 	// ssh fetcher, to connect remote proxy server
 	SSH *SSH
 	// a cache
-	BlockedHosts map[string]bool
+
+	//BlockedHosts map[string]bool
+
 	// for serve http
 	mutex sync.RWMutex
 }
@@ -49,69 +48,81 @@ func NewServer(mode int, c *Config) (self *Server, err error) {
 	shouldProxyTimeout := time.Millisecond * time.Duration(c.File.ShouldProxyTimeoutMS)
 
 	self = &Server{
-		Mode:         mode,
-		Cfg:          c,
-		Direct:       NewDirect(shouldProxyTimeout),
-		SSH:          ssh,
-		BlockedHosts: make(map[string]bool),
+		Mode:   mode,
+		Cfg:    c,
+		Direct: NewDirect(shouldProxyTimeout),
+		SSH:    ssh,
+		// BlockedHosts: make(map[string]bool),
 	}
 	self.Direct.proxy = &httputil.ReverseProxy{
 		Transport: self.Direct.Tr,
-		Director:  self.Cfg.ReverseProxy,
+		Director:  self.Cfg.Director,
 	}
 
 	ssh.Direct.proxy = &httputil.ReverseProxy{
 		Transport: ssh.Direct.Tr,
-		Director:  self.Cfg.ReverseProxy,
+		Director:  self.Cfg.Director,
 	}
 
 	return
 }
 
-func (self *Server) Blocked(host string) bool {
-	blocked, cached := false, false
-	host = HostOnly(host)
-	self.mutex.RLock()
-	if self.BlockedHosts[host] {
-		blocked = true
-		cached = true
-	}
-	self.mutex.RUnlock()
+//func (self *Server) Blocked(host string) bool {
+//	blocked, cached := false, false
+//	host = HostOnly(host)
+//	self.mutex.RLock()
+//	if self.BlockedHosts[host] {
+//		blocked = true
+//		cached = true
+//	}
+//	self.mutex.RUnlock()
+//
+//	if !blocked {
+//		tld, _ := publicsuffix.EffectiveTLDPlusOne(host)
+//		blocked = self.Cfg.Blocked(tld)
+//	}
+//
+//	if !blocked {
+//		suffix, _ := publicsuffix.PublicSuffix(host)
+//		blocked = self.Cfg.Blocked(suffix)
+//	}
+//
+//	if blocked && !cached {
+//		self.mutex.Lock()
+//		self.BlockedHosts[host] = true
+//		self.mutex.Unlock()
+//	}
+//	return blocked
+//}
 
-	if !blocked {
-		tld, _ := publicsuffix.EffectiveTLDPlusOne(host)
-		blocked = self.Cfg.Blocked(tld)
-	}
-
-	if !blocked {
-		suffix, _ := publicsuffix.PublicSuffix(host)
-		blocked = self.Cfg.Blocked(suffix)
-	}
-
-	if blocked && !cached {
-		self.mutex.Lock()
-		self.BlockedHosts[host] = true
-		self.mutex.Unlock()
-	}
-	return blocked
-}
 func (self *Server) UseProxy(addr string, r *http.Request) bool {
 	var use = false
+
+	if r != nil && self.Cfg.ReverseProxy(r) {
+		use = false
+		return use
+	}
+
 	value, has := self.Cfg.File.ForwardMap[addr]
 	if has {
 		if r != nil {
 			r.Host = value
-			r.URL.Host = value
+			//// r.URL.Host = value
 			L.Printf("[%s] %s %s %s\n", "FORWARD", r.Method, r.RequestURI, r.Proto)
+
 		} else {
 			L.Printf("[%s] %s => %s\n", "FORWARD", addr, value)
 		}
 	} else {
-		host, _, err := net.SplitHostPort(addr)
-		if err == nil {
-			address := net.ParseIP(host)
-			use = address != nil || self.Blocked(addr)
-		}
+		_, use = self.Cfg.dt.Lookup(addr)
+		//host, _, err := net.SplitHostPort(addr)
+		//if err == nil {
+		//
+		//	//address := net.ParseIP(host)
+		//	//if address!=nil {
+		//	//	use = self.Cfg.filter.NetBlocked(address)
+		//	//}
+		//}
 		if r != nil {
 			L.Printf("[%s] %s %s %s\n", AccessType(use), r.Method, r.RequestURI, r.Proto)
 		} else {
@@ -158,7 +169,7 @@ func (self *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	} else if r.URL.IsAbs() {
 		// This is an error if is not empty on Client
 		r.RequestURI = ""
-		RemoveHopHeaders(r.Header)
+		//RemoveHopHeaders(r.Header)
 		if use {
 			self.SSH.ServeHTTP(w, r)
 		} else {

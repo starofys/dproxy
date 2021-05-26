@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	FConfig = flag.String("config", "proxy.json", "config file")
+	FConfig = flag.String("config", "proxy.yml", "config file")
 	FSuffix = flag.String("suffix", "", "print pulbic suffix for the given domain")
 	FReload = flag.Bool("reload", false, "send signal to reload config file")
 )

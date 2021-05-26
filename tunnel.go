@@ -8,24 +8,20 @@ import (
 
 func (self *Server) ServerTunnel() {
 	for _, item := range self.Cfg.File.TunnelMap {
-		if len(item) != 3 {
-			L.Printf("error config %s", item)
-			continue
-		}
-		go self.initServerTunnel(item[0], item[1], item[2])
+		go self.initServerTunnel(&item)
 	}
 }
 
-func (self *Server) initServerTunnel(local, remote, name string) {
+func (self *Server) initServerTunnel(item *TunnelItem) {
 
-	ln, err := net.Listen("tcp", local)
+	ln, err := net.Listen("tcp", item.Local)
 
 	if err != nil {
-		L.Printf("listen fail %s %s => %s %s", name, local, remote, err)
+		L.Printf("listen fail %s %s => %s %s", item.Name, item.Local, item.Target, err)
 		return
 	}
 
-	L.Printf("new Tunnel %s %s => %s\n", name, local, remote)
+	L.Printf("new Tunnel %s %s => %s\n", item.Name, item.Local, item.Target)
 
 	for id := 0; ; id++ {
 		conn, err := ln.Accept()
@@ -33,7 +29,7 @@ func (self *Server) initServerTunnel(local, remote, name string) {
 			L.Printf("%d: %s\n", id, err)
 			continue
 		}
-		L.Printf("%d: new %s %s %s\n", id, name, local, remote)
+		L.Printf("%d: new %s %s %s\n", id, item.Name, item.Local, item.Target)
 
 		if tcpConn := conn.(*net.TCPConn); tcpConn != nil {
 			// L.Printf("%d: setup keepalive for TCP connection\n", id)
@@ -43,12 +39,12 @@ func (self *Server) initServerTunnel(local, remote, name string) {
 
 		go func(myid int, conn net.Conn) {
 			defer conn.Close()
-			c, err := self.SSH.Direct.Tr.Dial("tcp", remote)
+			c, err := self.SSH.Direct.Tr.Dial("tcp", item.Target)
 			if err != nil {
 				L.Printf("%d: %s\n", myid, err)
 				return
 			}
-			L.Printf("%d: new %s <-> %s\n", myid, local, remote)
+			L.Printf("%d: new %s <-> %s\n", myid, item.Local, item.Target)
 			defer c.Close()
 			wait1 := make(chan int)
 			wait2 := make(chan int)
@@ -57,7 +53,7 @@ func (self *Server) initServerTunnel(local, remote, name string) {
 				if err != nil {
 					L.Printf("%d: %s\n", myid, err)
 				}
-				L.Printf("%d: %s -> %s %d bytes\n", myid, remote, local, n)
+				L.Printf("%d: %s -> %s %d bytes\n", myid, item.Target, item.Local, n)
 				close(wait1)
 			}()
 			go func() {
@@ -65,7 +61,7 @@ func (self *Server) initServerTunnel(local, remote, name string) {
 				if err != nil {
 					L.Printf("%d: %s\n", myid, err)
 				}
-				L.Printf("%d: %s -> %s %d bytes\n", myid, local, remote, n)
+				L.Printf("%d: %s -> %s %d bytes\n", myid, item.Local, item.Target, n)
 				close(wait2)
 			}()
 			<-wait1

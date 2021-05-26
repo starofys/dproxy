@@ -25,3 +25,5 @@ _testmain.go
 *.7z
 *.zip
 build/
+
+bin/proxy.yml
