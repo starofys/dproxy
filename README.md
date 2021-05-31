@@ -2,7 +2,7 @@
 
 > HTTP/SOCKET5 proxy over SSH.
 
-[下载 Release 0.0.3](https://gitee.com/yysf_xin/dproxy/attach_files/715694/download/dproxy-0.0.3.exe)
+[下载 Release 0.0.3](https://gitee.com/yysf_xin/dproxy/attach_files/716957/download/dproxy-0.0.3.exe)
 
 ### 功能特性
 
