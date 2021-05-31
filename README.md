@@ -26,23 +26,23 @@ remote: 'ssh://user@10.227.112.9:22223'
 tunnel:
   - name: 开发mysql
     local: '127.0.0.1:12120'
-    remote: '10.227.100.2:3006'
+    target: '10.227.100.2:3006'
 
   - name: 测试mysql
     local: '127.0.0.1:12121'
-    remote: '10.227.100.4:3006'
+    target: '10.227.100.4:3006'
 
   - name: 开发redis
     local: '127.0.0.1:6380'
-    remote: '10.227.100.20:8039'
+    target: '10.227.100.20:8039'
 
   - name: 测试redis
     local: '127.0.0.1:3036'
-    remote: '10.227.96.8:3036'
+    target: '10.227.96.8:3036'
 
   - name: Sonar
     local: '127.0.0.1:8000'
-    remote: '10.227.100.22:8000'
+    target: '10.227.100.22:8000'
 # tcp 端口转发配置，http转发建议使用 proxy_pass 反向代理
 forward:
 # 反向代理配置

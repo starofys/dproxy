@@ -7,8 +7,8 @@ import (
 )
 
 func (self *Server) ServerTunnel() {
-	for _, item := range self.Cfg.File.TunnelMap {
-		go self.initServerTunnel(&item)
+	for i, _ := range self.Cfg.File.TunnelMap {
+		go self.initServerTunnel(&self.Cfg.File.TunnelMap[i])
 	}
 }
 
