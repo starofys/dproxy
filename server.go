@@ -1,8 +1,10 @@
 package dproxy
 
 import (
+	"net"
 	"net/http"
 	"net/http/httputil"
+	"strings"
 	"sync"
 	"time"
 )
@@ -114,8 +116,16 @@ func (self *Server) UseProxy(addr string, r *http.Request) bool {
 			L.Printf("[%s] %s => %s\n", "FORWARD", addr, value)
 		}
 	} else {
-		_, use = self.Cfg.dt.Lookup(addr)
-		//host, _, err := net.SplitHostPort(addr)
+
+		if strings.Contains(addr, ":") {
+			host, _, err := net.SplitHostPort(addr)
+			if err == nil {
+				_, use = self.Cfg.dt.Lookup(host)
+			}
+		} else {
+			_, use = self.Cfg.dt.Lookup(addr)
+		}
+
 		//if err == nil {
 		//
 		//	//address := net.ParseIP(host)

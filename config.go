@@ -48,7 +48,7 @@ type ConfigFile struct {
 	// direct to proxy dial timeout
 	ShouldProxyTimeoutMS int `json:"timeout_ms" yaml:"timeout_ms"`
 	// blocked host list
-	BlockedList []string `json:"proxy" yaml:"proxy1"`
+	BlockedList []string `json:"proxy" yaml:"proxy"`
 
 	ForwardMap map[string]string `json:"forward" yaml:"forward"`
 

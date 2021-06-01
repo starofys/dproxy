@@ -116,7 +116,7 @@ func NewSSH(c *Config) (self *SSH, err error) {
 		}
 		_, _, err = self.Client.Conn.SendRequest("keepalive@golang.org", true, nil)
 		if err == nil {
-			L.Printf("dial %s failed: %s, can not connect to %s...\n", addr, err, self.URL.Host)
+			L.Printf("dial %s failed can not connect to %s...\n", addr, self.URL.Host)
 			return nil, errors.New("can not connect")
 		}
 
