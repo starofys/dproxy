@@ -196,15 +196,9 @@ func (cfg *Config) ReverseProxy(req *http.Request) bool {
 		return false
 	}
 	for uri, proxyCfg := range proxyMap {
-		index := strings.IndexAny(req.URL.Path, uri)
-		if index == -1 {
+		if !strings.HasPrefix(req.URL.Path, uri) {
 			continue
 		}
-		index += len(uri)
-		//matched, err := path.Match(uri, req.URL.Path)
-		//if err != nil || !matched {
-		//	continue
-		//}
 
 		if proxyCfg.TargetURL == nil {
 			proxyCfg.TargetURL, _ = url.Parse(proxyCfg.Target)
@@ -219,7 +213,7 @@ func (cfg *Config) ReverseProxy(req *http.Request) bool {
 			req.URL.Host = target.Host
 
 			if strings.HasSuffix(proxyCfg.Target, "/") {
-				req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path[index:])
+				req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path[len(uri):])
 			} else {
 				req.URL.Path = singleJoiningSlash(target.Path, req.URL.Path)
 			}
